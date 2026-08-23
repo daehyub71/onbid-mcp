@@ -7,7 +7,7 @@
 import os
 import pathlib
 from dataclasses import dataclass
-from typing import Final
+from typing import ClassVar, Final
 from urllib.parse import unquote
 
 ROOT: Final = pathlib.Path(__file__).resolve().parents[1]
@@ -28,7 +28,7 @@ def _read_env_file(path: pathlib.Path) -> dict[str, str]:
     return values
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class Settings:
     """실행에 필요한 외부 자원 설정.
 
@@ -47,6 +47,22 @@ class Settings:
     vworld_api_key: str = ""
     database_url: str = ""
     log_level: str = "INFO"
+
+    #: `repr` 에 값을 넣지 않을 필드. 나머지(로그 레벨)는 그대로 보여준다.
+    SECRET_FIELDS: ClassVar[tuple[str, ...]] = (
+        "onbid_service_key", "kakao_rest_api_key", "vworld_api_key", "database_url",
+    )
+
+    def __repr__(self) -> str:
+        """값 대신 **설정 여부만** 보여준다.
+
+        디버깅 중 설정 객체를 찍는 일은 흔하고, 공개 저장소의 Actions 로그는 누구나 볼 수
+        있다. 기본 dataclass `repr` 은 키를 그대로 노출한다 (N4.1).
+        """
+        parts = [f"{name}={'설정됨' if getattr(self, name) else '없음'}"
+                 for name in self.SECRET_FIELDS]
+        parts.append(f"log_level={self.log_level!r}")
+        return f"Settings({', '.join(parts)})"
 
     @classmethod
     def load(cls, path: pathlib.Path = ENV_FILE) -> "Settings":
