@@ -1,0 +1,45 @@
+{
+  "body": {
+    "items": {
+      "item": [
+        {
+          "ctgrId": "10100",
+          "ctgrNm": "토지",
+          "upCtgrId": "10000",
+          "upCtgrNm": "부동산"
+        },
+        {
+          "ctgrId": "10200",
+          "ctgrNm": "주거용건물",
+          "upCtgrId": "10000",
+          "upCtgrNm": "부동산"
+        },
+        {
+          "ctgrId": "10300",
+          "ctgrNm": "상가용및업무용건물",
+          "upCtgrId": "10000",
+          "upCtgrNm": "부동산"
+        },
+        {
+          "ctgrId": "10400",
+          "ctgrNm": "산업용및기타특수용건물",
+          "upCtgrId": "10000",
+          "upCtgrNm": "부동산"
+        },
+        {
+          "ctgrId": "10500",
+          "ctgrNm": "용도복합용건물",
+          "upCtgrId": "10000",
+          "upCtgrNm": "부동산"
+        }
+      ]
+    },
+    "numOfRows": 10,
+    "pageNo": 1,
+    "totalCount": 5
+  },
+  "header": {
+    "resultCode": "00",
+    "resultMsg": "NORMAL_CODE"
+  }
+}

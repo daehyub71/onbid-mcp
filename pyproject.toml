@@ -1,0 +1,40 @@
+[project]
+name = "onbid-mcp"
+version = "0.1.0"
+description = "온비드 공매물건 데이터 레이어 및 MCP 서버"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+# stdlib → third-party → local (워크스페이스 규칙)
+known-first-party = ["core", "onbid_mcp", "api"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unreachable = true
+# 서드파티 스텁 부재로 인한 잡음 억제
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "live: 온비드·카카오 실제 API를 호출하는 테스트 (쿼터 소모)",
+    "db: Supabase에 연결하는 통합 테스트 (네트워크 필요)",
+]
+# 기본 실행은 네트워크 없이 완주해야 한다 (PLAN §5.3)
+#   pytest        → 순수 테스트만
+#   pytest -m db  → DB 통합 테스트
+#   pytest -m live→ 온비드·카카오 실호출
+addopts = "-m 'not live and not db'"

@@ -1,0 +1,45 @@
+{
+  "body": {
+    "items": {
+      "item": [
+        {
+          "dtlAddr": "155",
+          "emdNm": "개포동",
+          "sdnm": "서울특별시",
+          "sggnm": "강남구"
+        },
+        {
+          "dtlAddr": "174 개일초등학교 급식실",
+          "emdNm": "개포동",
+          "sdnm": "서울특별시",
+          "sggnm": "강남구"
+        },
+        {
+          "dtlAddr": "222-30 제2층 제203호",
+          "emdNm": "논현동",
+          "sdnm": "서울특별시",
+          "sggnm": "강남구"
+        },
+        {
+          "dtlAddr": "56-21",
+          "emdNm": "논현동",
+          "sdnm": "서울특별시",
+          "sggnm": "강남구"
+        },
+        {
+          "dtlAddr": "897-15 (건물 및 토지)",
+          "emdNm": "대치동",
+          "sdnm": "서울특별시",
+          "sggnm": "강남구"
+        }
+      ]
+    },
+    "numOfRows": 5,
+    "pageNo": 1,
+    "totalCount": 140
+  },
+  "header": {
+    "resultCode": "00",
+    "resultMsg": "NORMAL_CODE"
+  }
+}

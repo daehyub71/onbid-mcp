@@ -1,0 +1,28 @@
+# 환경 변수 · 시크릿
+.env
+.env.*
+!.env.example
+
+# 파이썬
+venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+
+# 온비드 활용가이드 원본 (공공데이터포털 배포 문서)
+# 공개 저장소에 재배포하지 않는다 — 이용약관 확인 전까지 로컬 참고용으로만 둔다.
+# 실측으로 확인한 응답 구조·필드는 docs/API_FINDINGS.md 에 정리돼 있어 개발에 지장이 없다.
+docs/api-guides/
+
+# 데이터베이스 · 산출물
+*.db
+*.sqlite
+*.sqlite3
+data/
+logs/
+
+# OS
+.DS_Store
