@@ -18,6 +18,10 @@ on:
         description: "회차 배치 호출 예산 (0이면 건너뜀)"
         required: false
         default: "1000"
+      geocode_budget:
+        description: "좌표 패스 호출 예산 (0이면 건너뜀)"
+        required: false
+        default: "1000"
       skip_codes:
         description: "코드표 갱신 건너뛰기"
         type: boolean
@@ -48,17 +52,19 @@ jobs:
       - name: 의존성 설치
         run: pip install -r requirements.txt
 
-      - name: 코드표 + 전량 수집 + 회차
+      - name: 코드표 + 전량 수집 + 회차 + 좌표
         env:
           ONBID_SERVICE_KEY: ${{ secrets.ONBID_SERVICE_KEY }}
           SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           BUDGET: ${{ github.event.inputs.rounds_budget || '1000' }}
+          GEOCODE: ${{ github.event.inputs.geocode_budget || '1000' }}
           SKIP_CODES: ${{ github.event.inputs.skip_codes }}
         run: |
           set -euo pipefail
-          echo "전량 수집 · 회차 예산 $BUDGET"
+          echo "전량 수집 · 회차 $BUDGET · 좌표 $GEOCODE"
 
-          ARGS=(--mode full --rounds-budget "$BUDGET")
+          ARGS=(--mode full --rounds-budget "$BUDGET" --geocode-budget "$GEOCODE")
           if [ "$SKIP_CODES" = "true" ]; then ARGS+=(--skip-codes); fi
 
           python scripts/run_batch.py "${ARGS[@]}"

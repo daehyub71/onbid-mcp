@@ -22,6 +22,10 @@ on:
         description: "회차 배치 호출 예산 (0이면 건너뜀)"
         required: false
         default: "1000"
+      geocode_budget:
+        description: "좌표 패스 호출 예산 (0이면 건너뜀)"
+        required: false
+        default: "500"
       sgg:
         description: "시군구로 범위 좁히기 (예: 강남구)"
         required: false
@@ -55,19 +59,24 @@ jobs:
 
       # 증분 기준일은 **최근 N일**이다. 하루치만 보면 배치를 한 번 걸렀을 때 그날 변경분을
       # 영영 놓친다 — 겹치게 받아도 적재가 멱등이라(AC2) 손해가 없다.
-      - name: 증분 수집 + 회차
+      #
+      # 좌표 패스가 같이 돌아야 한다 (F8.1). 빠뜨리면 매일 좌표 없는 행만 쌓인다.
+      - name: 증분 수집 + 회차 + 좌표
         env:
           ONBID_SERVICE_KEY: ${{ secrets.ONBID_SERVICE_KEY }}
           SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           LOOKBACK: ${{ github.event.inputs.lookback_days || '3' }}
           BUDGET: ${{ github.event.inputs.rounds_budget || '1000' }}
+          GEOCODE: ${{ github.event.inputs.geocode_budget || '500' }}
           SGG: ${{ github.event.inputs.sgg }}
         run: |
           set -euo pipefail
           SINCE=$(TZ=Asia/Seoul date -d "$LOOKBACK days ago" +%Y%m%d)
-          echo "증분 기준일 $SINCE (최근 ${LOOKBACK}일) · 회차 예산 $BUDGET"
+          echo "증분 기준일 $SINCE (최근 ${LOOKBACK}일) · 회차 $BUDGET · 좌표 $GEOCODE"
 
-          ARGS=(--mode delta --since "$SINCE" --skip-codes --rounds-budget "$BUDGET")
+          ARGS=(--mode delta --since "$SINCE" --skip-codes
+                --rounds-budget "$BUDGET" --geocode-budget "$GEOCODE")
           if [ -n "$SGG" ]; then ARGS+=(--sgg "$SGG"); fi
 
           python scripts/run_batch.py "${ARGS[@]}"
