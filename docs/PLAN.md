@@ -68,7 +68,9 @@ onbid-mcp/
 │  │   ├─ codes.py              # 용도·주소 코드표 upsert (F6.12)
 │  │   ├─ batch_run.py          # 배치 메타 + 재개 지점 (F4.6·F4.15·N2.2)
 │  │   └─ tombstone.py          # 사라진 물건 표시 — 범위 필수 (F4.2·F4.13)
-│  ├─ geocoder/                 # 카카오 → VWorld 폴백, 캐시, 쿼터 관리
+│  ├─ geocoder/
+│  │   ├─ cache.py              # 주소 캐시 — 실패도 캐시한다 (F3.2)
+│  │   └─ kakao.py              # 카카오 로컬 — 429 즉시 중단 (F3.3~F3.5)
 │  ├─ stats/                    # 분포 집계
 │  └─ pipeline/                 # 배치 오케스트레이션 — **커밋은 여기서만** (F4.16)
 │      ├─ batch.py             # 물건 배치: 수집 → 이력+적재 → tombstone → 메타 (전량/증분)
