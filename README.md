@@ -8,9 +8,10 @@ An MCP server that lets an LLM query Korean public auction (공매) property dat
 Ask **"which properties in 강남구 have failed to sell more than three times?"** in Claude
 Desktop and get answers from data you collected yourself — no subscription, no scraping.
 
-> **Status.** The pipeline and all four MCP tools work end to end against live data
-> (6,902 Seoul listings, 99.9% geocoded). Remaining: final acceptance checks (M7) and a week
-> of watching the scheduled batches. See [docs/TASKS.md](docs/TASKS.md) for the exact state.
+> **Status.** Working end to end — the pipeline runs on a schedule, and the four tools are
+> connected and answering in Claude Desktop against live data (6,902 Seoul listings, 99.9%
+> geocoded). Remaining: final acceptance checks (M7) and a week of watching the scheduled
+> batches. See [docs/TASKS.md](docs/TASKS.md) for the exact state.
 
 ---
 

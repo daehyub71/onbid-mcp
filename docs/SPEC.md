@@ -1034,7 +1034,7 @@ Phase 1 완료 조건:
 - [x] AC2. 배치 재실행 시 DB 상태가 동일하다 (멱등성) — **적재 계층 검증 완료 (2026-08-22)**. `start_run → 이력+적재 → 회차 → 코드표 → tombstone → finish_run` 를 실 Supabase에서 두 번 돌려 스냅숏 일치·행 수 불변·이력 1회만 기록을 확인 (`tests/test_store_idempotency.py`). 지오코딩·수집 포함 전 구간은 M4 이후 재확인
 - [x] AC3. 지오코딩 `ok` 비율 **90% 이상** — **달성 (2026-08-23)**: 6,902건 중 `ok` 6,895(99.90%) · `approx` 6(0.09%) · `failed` 1(0.01%). 실호출 675회
 - [ ] AC4. `approx` / `failed` 건을 **전수 육안 확인**하고 원인을 분류한다
-- [ ] AC5. **Claude Desktop**에서 툴 4종과 Resource 4종이 모두 정상 호출된다 *(2026-08-23 변경 — 사용자 결정. 등록 파일이 `.mcp.json` 이 아니라 `claude_desktop_config.json` 이다)*
+- [x] AC5. **Claude Desktop**에서 툴 4종과 Resource 4종이 모두 정상 호출된다 *(2026-08-23 변경 — 사용자 결정. 등록 파일이 `.mcp.json` 이 아니라 `claude_desktop_config.json` 이다)* — **연결 확인 완료 (2026-08-23)**. 툴별 개별 호출은 M7 의 시나리오 검수(AC8)에서 전수 확인한다
 - [ ] AC6. 모든 툴 응답에 `meta` + `query_echo`가 포함된다
 - [ ] AC7. 오류 5종이 각각 구분되어 반환된다 (`no_result` 포함)
 - [ ] AC8. §3.2 시나리오 S1~S7이 LLM 대화로 수행된다
