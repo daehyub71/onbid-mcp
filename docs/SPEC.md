@@ -235,7 +235,7 @@ MCP 툴의 입출력 계약(§8)을 먼저 확정하고, DB 스키마(§7)와 st
 | F4.7 | **`lowstBidPrcIndctCont`는 숫자가 아닌 문자열일 수 있다** — 실측 6,910건 중 `"비공개"` 1건. 파싱 실패 시 `min_bid_amt`를 null로 두고 원문을 `min_bid_amt_text`에 보존한다. **값이 아예 없는 것과 가려진 것을 구분한다** — 전자는 데이터 부재, 후자는 온비드가 의도적으로 감춘 것 | P0 |
 | F4.12 | 금액은 **음수와 소수를 거부**한다. 금액이 음수일 수 없고, 원 단위 필드의 소수는 데이터 문제이지 반올림 대상이 아니다 — 조용히 받아들이면 최저가율이 음수가 되거나 금액이 어긋난다 | P0 |
 | F4.8 | 압류재산(`0007`)의 `lowstBidPrcIndctCont`는 온비드 화면상 **'공매예정가격'** 으로 표시된다. 표기 차이를 응답·문서에 반영한다 | P1 |
-| F4.6 | 배치 실행 메타(`synced_at`, 처리 건수, 지오코딩 성공률)를 `onbid_batch_run` 테이블에 기록한다. **행은 배치 시작 시점에 연다** — 끝날 때 한 번에 쓰면 배치가 죽었을 때 아무 흔적도 남지 않는다. `mode`(`full`|`delta`|`rounds`|`codes`)와 `status`(`ok`|`partial`|`failed`)는 허용값을 검증한다 — `mode` 오타는 tombstone 판정 여부를 뒤집는다 | P0 |
+| F4.6 | 배치 실행 메타(`synced_at`, 처리 건수, 지오코딩 성공률)를 `onbid_batch_run` 테이블에 기록한다. **행은 배치 시작 시점에 연다** — 끝날 때 한 번에 쓰면 배치가 죽었을 때 아무 흔적도 남지 않는다. `mode`(`full`|`delta`|`rounds`|`codes`|`geocode`)와 `status`(`ok`|`partial`|`failed`)는 허용값을 검증한다 — `mode` 오타는 tombstone 판정 여부를 뒤집는다 | P0 |
 | F4.15 | **완주(`ok`)한 배치는 `resume_token` 을 남기지 않는다.** 남으면 다음 실행이 이유 없이 중간부터 시작한다. 재개 지점 조회는 **종료된 배치만** 본다 — 방금 연 자기 행을 읽으면 재개가 성립하지 않는다. 전량·증분은 순회 방식이 달라 재개 지점을 공유하지 않는다 (N2.2) | P0 |
 | F4.16 | **배치 오케스트레이션은 트랜잭션 경계를 명시한다.** `onbid_batch_run` 행은 열자마자 **즉시 커밋**한다 — 데이터와 같은 트랜잭션에 묶으면 배치가 죽었을 때 메타까지 함께 사라져 F4.6이 무의미해진다. 반면 **이력·적재·tombstone 은 한 트랜잭션**으로 커밋한다 — 이력만 남고 적재가 실패한 상태를 만들지 않는다 | P0 |
 | F4.17 | **수집이 완주하지 못했으면 tombstone 을 판정하지 않는다.** 페이지 실패·상한 도달·중단이 있으면 '응답에 없음' 이 '사라짐' 을 뜻하지 않는다 — 실패한 페이지의 물건이 통째로 종료 처리된다. `CollectResult.is_complete` 가 거짓이면 판정을 건너뛰고 배치를 `partial` 로 닫는다. F4.2·F4.13 과 함께 tombstone 오작동을 막는 **세 번째 잠금장치**다 | P0 |
@@ -674,7 +674,7 @@ create table if not exists onbid_addr_map (
 -- 배치 실행 메타 (F4.6)
 create table if not exists onbid_batch_run (
   run_id          bigserial primary key,
-  mode            text,                 -- full | delta | rounds | codes
+  mode            text,                 -- full | delta | rounds | codes | geocode
   started_at      timestamptz not null default now(),
   finished_at     timestamptz,
   status          text,                 -- ok | partial | failed

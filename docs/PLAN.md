@@ -76,7 +76,8 @@ onbid-mcp/
 │  └─ pipeline/                 # 배치 오케스트레이션 — **커밋은 여기서만** (F4.16)
 │      ├─ batch.py             # 물건 배치: 수집 → 이력+적재 → tombstone → 메타 (전량/증분)
 │      ├─ rounds.py            # 회차 이력 배치: 시도 시각순 롤링 (F1.11·F1.16)
-│      └─ codes.py             # 코드표 갱신 배치 — 소스별 실패 격리 (F6.12·F7.2)
+│      ├─ codes.py             # 코드표 갱신 배치 — 소스별 실패 격리 (F6.12·F7.2)
+│      └─ geocode.py           # 좌표 패스 — lat is null 대상, 호출 예산 (F3.5)
 ├─ onbid_mcp/                   # core를 import만 함 (`mcp`로 두면 SDK를 가린다)
 │  ├─ server.py                 # stdio 엔트리
 │  ├─ common.py                 # meta·query_echo·오류 래퍼

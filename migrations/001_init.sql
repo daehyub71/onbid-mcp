@@ -182,7 +182,7 @@ create table if not exists onbid_addr_map (
 -- ── 배치 실행 메타 (F4.6) ───────────────────────────────────────────────
 create table if not exists onbid_batch_run (
   run_id          bigserial   primary key,
-  mode            text,                     -- full | delta | rounds | codes
+  mode            text,                     -- full | delta | rounds | codes | geocode
   started_at      timestamptz not null default now(),
   finished_at     timestamptz,
   status          text,                     -- ok | partial | failed

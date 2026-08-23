@@ -207,3 +207,45 @@ async def test_blank_input_does_not_count(client: KakaoClient) -> None:
         await client.search("")
 
     assert client.call_count == 0
+
+
+# ── 백오프 간격 (F3.4) ─────────────────────────────────────────────────
+
+
+@respx.mock
+async def test_backoff_grows_exponentially() -> None:
+    """간격이 늘지 않으면 장애 중인 서버를 같은 속도로 계속 두드린다."""
+    waited: list[float] = []
+
+    async def record(seconds: float) -> None:
+        waited.append(seconds)
+
+    client = KakaoClient(rest_api_key="test-key", rate_per_sec=0,
+                         backoff_base=0.5, sleep_fn=record)
+    respx.get(SEARCH_URL).mock(side_effect=[
+        httpx.Response(503), httpx.Response(503), found(),
+    ])
+
+    async with client:
+        await client.search("주소")
+
+    assert waited == [0.5, 1.0]
+
+
+@respx.mock
+async def test_no_backoff_after_the_last_attempt() -> None:
+    """마지막 시도 뒤의 대기는 아무 소용이 없다 — 배치만 느려진다."""
+    waited: list[float] = []
+
+    async def record(seconds: float) -> None:
+        waited.append(seconds)
+
+    client = KakaoClient(rest_api_key="test-key", rate_per_sec=0,
+                         max_attempts=3, sleep_fn=record)
+    respx.get(SEARCH_URL).mock(return_value=httpx.Response(503))
+
+    async with client:
+        with pytest.raises(Exception, match="503"):
+            await client.search("주소")
+
+    assert len(waited) == 2  # 3회 시도 사이의 간격은 2번뿐이다

@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 TABLE: Final = "onbid_batch_run"
 
-MODES: Final = frozenset({"full", "delta", "rounds", "codes"})
+MODES: Final = frozenset({"full", "delta", "rounds", "codes", "geocode"})
 """전량·증분·회차.
 
 `full`/`delta` 는 tombstone 판정 여부가 갈리므로 오타를 통과시키지 않는다 (F4.2).
-`rounds`(회차 이력)·`codes`(코드표)는 별개 배치다 — 물건 배치와 **재개 지점을 공유하지
-않도록** 모드를 나눈다.
+`rounds`(회차 이력)·`codes`(코드표)·`geocode`(좌표)는 별개 배치다 — 물건 배치와
+**재개 지점을 공유하지 않도록** 모드를 나눈다.
 """
 
 STATUSES: Final = frozenset({"ok", "partial", "failed"})
