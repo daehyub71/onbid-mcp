@@ -102,6 +102,7 @@ python scripts/run_batch.py
       "args": ["-m", "onbid_mcp.server"],
       "cwd": "/절대경로/onbid-mcp",
       "env": {
+        "PYTHONPATH": "/절대경로/onbid-mcp",
         "SUPABASE_DATABASE_URL": "postgresql://...",
         "ONBID_SERVICE_KEY": "...",
         "KAKAO_REST_API_KEY": "..."
@@ -111,8 +112,12 @@ python scripts/run_batch.py
 }
 ```
 
-여기서 걸리기 쉬운 것이 셋입니다.
+여기서 걸리기 쉬운 것이 넷입니다.
 
+- **`PYTHONPATH` 가 필요합니다 — `cwd` 만으로는 안 됩니다.** Claude Desktop 은 설정의 `cwd` 를
+  적용하지 않아서, `python -m onbid_mcp.server` 가 패키지를 못 찾고 `ModuleNotFoundError` 로
+  즉시 죽습니다. 앱은 이것을 "Server disconnected" 로 표시하기 때문에 경로 문제가 아니라
+  연결 문제처럼 보입니다.
 - **venv 인터프리터를 절대경로로** 씁니다. Claude Desktop 은 셸 `PATH` 를 물려받지 않아,
   그냥 `python` 이라고 쓰면 의존성이 없는 시스템 파이썬이 잡힙니다.
 - **키는 `env` 에 넣습니다.** 앱은 프로젝트의 `.env` 파일을 읽지 않습니다.
@@ -122,6 +127,9 @@ python scripts/run_batch.py
 Claude Desktop 을 재시작한 뒤 이렇게 물어보세요.
 
 > 강남구에서 3회 이상 유찰된 물건 중 최저가율 60% 이하인 것 보여줘
+
+연결이 안 되면 `~/Library/Logs/Claude/mcp-server-onbid.log` 를 보세요. 화면에는 "Server
+disconnected" 만 뜨지만 로그에는 실제 파이썬 오류가 그대로 남습니다.
 
 Claude Desktop 없이 서버만 확인하려면:
 

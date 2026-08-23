@@ -104,6 +104,7 @@ Add the server to `claude_desktop_config.json`:
       "args": ["-m", "onbid_mcp.server"],
       "cwd": "/absolute/path/to/onbid-mcp",
       "env": {
+        "PYTHONPATH": "/absolute/path/to/onbid-mcp",
         "SUPABASE_DATABASE_URL": "postgresql://...",
         "ONBID_SERVICE_KEY": "...",
         "KAKAO_REST_API_KEY": "..."
@@ -113,8 +114,12 @@ Add the server to `claude_desktop_config.json`:
 }
 ```
 
-Three things trip people up here:
+Four things trip people up here:
 
+- **`PYTHONPATH` is required — `cwd` alone is not enough.** Claude Desktop does not apply
+  the `cwd` entry, so `python -m onbid_mcp.server` cannot find the package and the process
+  dies instantly with `ModuleNotFoundError`. The app reports that as "Server disconnected",
+  which looks like a connection problem rather than a path one.
 - **Use the absolute path to the venv interpreter.** Claude Desktop does not inherit your
   shell `PATH`, so a bare `python` picks up a system interpreter with none of the dependencies.
 - **Put the keys in `env`.** The app does not read the project's `.env` file.
@@ -124,6 +129,9 @@ Three things trip people up here:
 Restart Claude Desktop, then try:
 
 > 강남구에서 3회 이상 유찰된 물건 중 최저가율 60% 이하인 것 보여줘
+
+If it fails, read `~/Library/Logs/Claude/mcp-server-onbid.log` — the actual Python error is
+in there, while the UI only says "Server disconnected".
 
 To check the connection without Claude Desktop:
 
