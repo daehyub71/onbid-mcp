@@ -14,7 +14,6 @@
 """
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Final
 
@@ -36,9 +35,11 @@ ERROR_CODES: Final = {
 PROTECTED_META: Final = frozenset({"source", "notice", "is_realtime"})
 
 
-@dataclass(frozen=True, slots=True)
 class ToolError(Exception):
     """툴이 돌려줄 오류.
+
+    **dataclass 로 만들지 않는다.** 예외는 던질 때 파이썬이 `__traceback__` 을 심는데,
+    frozen dataclass 는 그 대입을 막아 `raise` 자체가 실패한다.
 
     Attributes:
         code: `ERROR_CODES` 의 키.
@@ -46,21 +47,23 @@ class ToolError(Exception):
         candidates: `invalid_param` 일 때 재시도에 쓸 후보.
     """
 
-    code: str
-    message: str
-    candidates: Sequence[str] | None = None
-
-    def __post_init__(self) -> None:
-        """코드가 규약 안에 있는지 확인한다.
+    def __init__(
+        self, code: str, message: str, candidates: Sequence[str] | None = None
+    ) -> None:
+        """오류를 만든다.
 
         Raises:
             ValueError: 알 수 없는 코드일 때. 임의 코드를 만들면 LLM 이 어떻게 행동할지
                 정해지지 않는다.
         """
-        if self.code not in ERROR_CODES:
+        if code not in ERROR_CODES:
             raise ValueError(
-                f"알 수 없는 오류 코드: {self.code!r} (가능: {sorted(ERROR_CODES)})"
+                f"알 수 없는 오류 코드: {code!r} (가능: {sorted(ERROR_CODES)})"
             )
+        self.code = code
+        self.message = message
+        self.candidates = candidates
+        super().__init__(f"[{code}] {message}")
 
 
 def build_meta(

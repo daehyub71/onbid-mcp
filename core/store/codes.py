@@ -97,3 +97,56 @@ async def upsert_address_map(
 
     logger.info("주소 코드표 적재: %d건", len(rows))
     return len(rows)
+
+
+# ── 조회용 인덱스 적재 (F6.6·F6.12) ────────────────────────────────────
+
+_LOAD_USAGE: Final = f"""
+    select ctgr_id, ctgr_nm, up_ctgr_id, up_ctgr_nm, depth
+      from {USAGE_TABLE} order by depth, ctgr_id
+"""
+
+_LOAD_ADDRESS: Final = f"""
+    select sd_nm, sgg_nm, emd_nm from {ADDRESS_TABLE} order by sd_nm, sgg_nm, emd_nm
+"""
+
+
+async def load_usage_codes(conn: psycopg.AsyncConnection[Any]) -> list[UsageCode]:
+    """용도 트리를 DB 에서 읽는다.
+
+    조회 때마다 온비드에 물어보면 일일 트래픽을 검색에 쓰게 된다 (F6.12).
+
+    Args:
+        conn: 열린 연결.
+
+    Returns:
+        용도 노드들.
+    """
+    async with conn.cursor() as cur:
+        await cur.execute(_LOAD_USAGE)
+        rows = await cur.fetchall()
+
+    return [
+        UsageCode(ctgr_id=str(r[0]), ctgr_nm=str(r[1] or ""),
+                  up_ctgr_id=r[2], up_ctgr_nm=r[3], depth=int(r[4] or 0))
+        for r in rows
+    ]
+
+
+async def load_address_entries(
+    conn: psycopg.AsyncConnection[Any],
+) -> list[AddressEntry]:
+    """물건이 실제로 존재하는 행정구역 조합을 읽는다 (F7.1).
+
+    Args:
+        conn: 열린 연결.
+
+    Returns:
+        시도·시군구·읍면동 조합.
+    """
+    async with conn.cursor() as cur:
+        await cur.execute(_LOAD_ADDRESS)
+        rows = await cur.fetchall()
+
+    return [AddressEntry(sd_nm=str(r[0]), sgg_nm=str(r[1]), emd_nm=str(r[2]))
+            for r in rows]
