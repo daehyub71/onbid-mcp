@@ -1,0 +1,73 @@
+# 매일 배치 — 증분 수집 + 회차 이력 (F8.1)
+#
+# 깃허브 cron 은 UTC 만 지원한다. KST 04:00 은 **전날 19:00 UTC** 라 요일이 하나 밀린다.
+# `0-5`(UTC 일~금) = KST 월~토. KST 일요일 자리는 주간 배치(onbid-weekly)가 맡으므로
+# 두 워크플로가 같은 새벽에 겹치지 않는다.
+#
+# **실패해도 재시도하지 않는다** (F8.7). 재개 지점(F4.15)과 회차 시도 시각(F1.16)이 이월을
+# 처리하므로 다음 정기 실행이 이어받는다. 즉시 재시도는 같은 원인으로 또 실패하며 쿼터만 태운다.
+
+name: onbid daily
+
+on:
+  schedule:
+    - cron: "0 19 * * 0-5"    # KST 월~토 04:00
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: "증분 조회 범위 (일)"
+        required: false
+        default: "3"
+      rounds_budget:
+        description: "회차 배치 호출 예산 (0이면 건너뜀)"
+        required: false
+        default: "1000"
+      sgg:
+        description: "시군구로 범위 좁히기 (예: 강남구)"
+        required: false
+        default: ""
+
+# 배치는 저장소에 쓰지 않는다 (F8.5).
+permissions:
+  contents: read
+
+# 전량과 증분이 겹치면 tombstone 판정 기준 시각이 어긋나고 같은 행을 두 트랜잭션이 다툰다.
+# 취소하지 않고 **줄을 세운다** — 이미 받은 데이터를 버리지 않기 위해서다 (F8.3).
+concurrency:
+  group: onbid-batch
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      # 증분 기준일은 **최근 N일**이다. 하루치만 보면 배치를 한 번 걸렀을 때 그날 변경분을
+      # 영영 놓친다 — 겹치게 받아도 적재가 멱등이라(AC2) 손해가 없다.
+      - name: 증분 수집 + 회차
+        env:
+          ONBID_SERVICE_KEY: ${{ secrets.ONBID_SERVICE_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          LOOKBACK: ${{ github.event.inputs.lookback_days || '3' }}
+          BUDGET: ${{ github.event.inputs.rounds_budget || '1000' }}
+          SGG: ${{ github.event.inputs.sgg }}
+        run: |
+          set -euo pipefail
+          SINCE=$(TZ=Asia/Seoul date -d "$LOOKBACK days ago" +%Y%m%d)
+          echo "증분 기준일 $SINCE (최근 ${LOOKBACK}일) · 회차 예산 $BUDGET"
+
+          ARGS=(--mode delta --since "$SINCE" --skip-codes --rounds-budget "$BUDGET")
+          if [ -n "$SGG" ]; then ARGS+=(--sgg "$SGG"); fi
+
+          python scripts/run_batch.py "${ARGS[@]}"

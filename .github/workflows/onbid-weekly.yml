@@ -1,0 +1,64 @@
+# 주간 배치 — 코드표 갱신 + 전량 수집 (F8.2)
+#
+# **tombstone 판정 기회는 이 회차뿐이다.** 온비드는 진행 중인 물건만 반환하므로, 끝난 물건은
+# 응답에서 그냥 사라진다. 전량 스냅샷을 받아야 "사라졌다" 를 판정할 수 있고, 증분 모드에서는
+# "응답에 없음" 이 "변경 없음" 이라 판정하면 멀쩡한 데이터가 통째로 뒤집힌다 (F4.2).
+# 수집이 완주하지 못한 회차에도 판정하지 않는다 (F4.17) — 파이프라인이 스스로 건너뛴다.
+#
+# UTC 토요일 19:00 = KST 일요일 04:00. 매일 배치가 `0-5` 로 이 자리를 비워 둔다.
+
+name: onbid weekly
+
+on:
+  schedule:
+    - cron: "0 19 * * 6"    # KST 일요일 04:00
+  workflow_dispatch:
+    inputs:
+      rounds_budget:
+        description: "회차 배치 호출 예산 (0이면 건너뜀)"
+        required: false
+        default: "1000"
+      skip_codes:
+        description: "코드표 갱신 건너뛰기"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+# 매일 배치와 같은 그룹 — 겹치면 tombstone 기준 시각이 어긋난다 (F8.3).
+concurrency:
+  group: onbid-batch
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: 의존성 설치
+        run: pip install -r requirements.txt
+
+      - name: 코드표 + 전량 수집 + 회차
+        env:
+          ONBID_SERVICE_KEY: ${{ secrets.ONBID_SERVICE_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          BUDGET: ${{ github.event.inputs.rounds_budget || '1000' }}
+          SKIP_CODES: ${{ github.event.inputs.skip_codes }}
+        run: |
+          set -euo pipefail
+          echo "전량 수집 · 회차 예산 $BUDGET"
+
+          ARGS=(--mode full --rounds-budget "$BUDGET")
+          if [ "$SKIP_CODES" = "true" ]; then ARGS+=(--skip-codes); fi
+
+          python scripts/run_batch.py "${ARGS[@]}"
