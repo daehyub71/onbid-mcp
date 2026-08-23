@@ -74,11 +74,11 @@ def test_httpx_logging_stays_suppressed() -> None:
 # ── 등록 ───────────────────────────────────────────────────────────────
 
 
-async def test_server_exposes_no_tools_yet() -> None:
-    """골격 단계다. 툴은 다음 태스크에서 붙인다 — 빈 상태도 정상 기동해야 한다."""
+async def test_server_registers_its_tools() -> None:
+    """골격만으로는 클라이언트가 할 수 있는 게 없다 — 기동 시 툴이 붙어 있어야 한다."""
     server = build_server()
 
-    assert await server.list_tools() == []
+    assert {t.name for t in await server.list_tools()}
 
 
 def test_build_server_is_repeatable() -> None:
