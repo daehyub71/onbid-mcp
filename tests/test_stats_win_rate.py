@@ -116,3 +116,47 @@ async def test_rows_without_appraisal_are_excluded_not_zeroed(conn: Conn) -> Non
 
     assert all(b.key != "0-9" or b.count < result.win_to_appraisal.n
                for b in result.win_to_appraisal.buckets)
+
+
+# ── 사건 중복 (실데이터가 잡아낸 결함) ────────────────────────────────
+
+
+async def test_the_same_event_is_counted_once(conn: Conn) -> None:
+    """한 물건에 공매조건번호가 여러 개 붙고, **같은 낙찰 사건이 조건마다 저장**된다.
+
+    입찰정보 API 가 (물건, 조건) 으로 물어도 그 물건의 이력을 통째로 돌려주기 때문이다.
+    실측에서 낙찰 행 62건이 실제로는 사건 13건이었다 — 그대로 세면 평균 4.8배 부풀고,
+    조건번호가 많은 물건이 분포를 좌우한다.
+    """
+    async with conn.cursor() as cur:
+        await cur.execute("""
+            select count(distinct (r.cltr_mng_no, r.opbd_dt, r.pbct_nsq))
+              from onbid_cltr_bid_round r
+              join onbid_cltr c on c.cltr_mng_no = r.cltr_mng_no
+                               and c.pbct_cdtn_no = r.pbct_cdtn_no
+             where r.winning_amt is not null and c.appraisal_amt > 0
+               and c.sd_nm = '서울특별시'""")
+        found = await cur.fetchone()
+    assert found is not None
+
+    result = await aggregate_win_rates(conn, query=SEOUL)
+
+    assert result.n == found[0]
+
+
+async def test_property_count_is_distinct_properties(conn: Conn) -> None:
+    """물건 수는 **물건관리번호** 기준이다 — 조건번호까지 세면 부풀어 중복을 못 드러낸다."""
+    async with conn.cursor() as cur:
+        await cur.execute("""
+            select count(distinct r.cltr_mng_no)
+              from onbid_cltr_bid_round r
+              join onbid_cltr c on c.cltr_mng_no = r.cltr_mng_no
+                               and c.pbct_cdtn_no = r.pbct_cdtn_no
+             where r.winning_amt is not null and c.appraisal_amt > 0
+               and c.sd_nm = '서울특별시'""")
+        found = await cur.fetchone()
+    assert found is not None
+
+    result = await aggregate_win_rates(conn, query=SEOUL)
+
+    assert result.property_count == found[0]

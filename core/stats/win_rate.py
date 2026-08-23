@@ -22,6 +22,12 @@
 **집계 단위는 낙찰 회차(이벤트)** 다. 한 물건이 여러 번 낙찰·무산되면 여러 번 기여하므로,
 물건 수를 함께 실어 그 사실을 드러낸다.
 
+**같은 사건이 여러 번 저장돼 있다.** 한 물건에 공매조건번호가 최대 10개 붙는데(F4.1), 입찰정보
+API 는 `(물건, 조건)` 으로 물어도 그 물건의 이력을 통째로 돌려준다. 그래서 같은 낙찰 사건이
+조건 수만큼 적재된다 — 실측에서 낙찰 행 62건이 실제로는 **사건 13건 · 물건 6건**이었다.
+그대로 세면 평균 4.8배 부풀고, 조건번호가 많은 물건 하나가 분포를 좌우한다.
+사건 식별은 `(물건관리번호, 개찰일시, 회차)` 다 — 조건번호는 빼야 한다.
+
 > D20 이 해소되면(사라진 물건에도 입찰정보 API 가 응답한다면) 정상 낙찰 건까지 표본에 넣을 수
 > 있고, 그때 이 caveat 을 재검토한다.
 """
@@ -81,8 +87,9 @@ class WinRateStats:
     Attributes:
         win_to_appraisal: 낙찰가÷감정가 분포.
         win_to_min_bid: 낙찰가÷회차 최저입찰가 분포.
-        n: 낙찰 회차 수. **집계 단위는 이벤트다.**
-        property_count: 기여한 물건 수. `n` 과 다르면 한 물건이 여러 번 낙찰·무산된 것이다.
+        n: 낙찰 **사건** 수 — `(물건, 개찰일시, 회차)` 로 중복을 제거한 값이다.
+        property_count: 기여한 물건 수 (물건관리번호 기준). `n` 과 다르면 한 물건이 여러 번
+            낙찰·무산된 것이다.
         caveat: 모집단 편향 설명. 항상 채워진다.
         population: 표본이 무엇인지.
     """
@@ -95,12 +102,14 @@ class WinRateStats:
     population: str = POPULATION
 
 
+#: 사건 하나당 한 행만 남긴다. `distinct on` 의 정렬 키가 곧 사건 식별자다.
 _SQL: Final = f"""
-    select r.winning_amt::numeric / c.appraisal_amt          as to_appraisal,
+    select distinct on (r.cltr_mng_no, r.opbd_dt, r.pbct_nsq)
+           r.winning_amt::numeric / c.appraisal_amt          as to_appraisal,
            case when r.min_bid_amt > 0
                 then r.winning_amt::numeric / r.min_bid_amt
                 end                                          as to_min_bid,
-           r.cltr_mng_no, r.pbct_cdtn_no
+           r.cltr_mng_no
       from {ROUND_TABLE} r
       join {CLTR_TABLE} c
         on c.cltr_mng_no = r.cltr_mng_no
@@ -108,6 +117,9 @@ _SQL: Final = f"""
      where r.winning_amt is not null
        and c.appraisal_amt > 0
 """
+
+#: `distinct on` 은 정렬이 앞에 와야 한다. 조건번호는 사건 식별에서 빠지므로 아무거나 하나를 고른다.
+_ORDER: Final = " order by r.cltr_mng_no, r.opbd_dt, r.pbct_nsq, r.pbct_cdtn_no"
 
 
 def _bucket_key(ratio: float) -> str:
@@ -170,12 +182,13 @@ async def aggregate_win_rates(
     params["won"] = WON_STATUS
 
     async with conn.cursor() as cur:
-        await cur.execute(f"{_SQL}   and r.status = %(won)s{where}", params)
+        await cur.execute(f"{_SQL}   and r.status = %(won)s{where}{_ORDER}", params)
         rows = await cur.fetchall()
 
     to_appraisal = [float(row[0]) for row in rows if row[0] is not None]
     to_min_bid = [float(row[1]) for row in rows if row[1] is not None]
-    properties = {(row[2], row[3]) for row in rows}
+    # 물건 수는 **물건관리번호** 기준이다 — 조건번호까지 세면 중복이 드러나지 않는다.
+    properties = {row[2] for row in rows}
 
     logger.debug("낙찰가율: 회차 %d · 물건 %d", len(rows), len(properties))
     return WinRateStats(
