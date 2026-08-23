@@ -67,6 +67,8 @@ onbid-mcp/
 │  │   ├─ bid_round.py          # 회차 이력 — 개찰일시까지 키 (F1.7·§7)
 │  │   ├─ codes.py              # 용도·주소 코드표 upsert (F6.12)
 │  │   ├─ batch_run.py          # 배치 메타 + 재개 지점 (F4.6·F4.15·N2.2)
+│  │   ├─ geocode.py           # 좌표 적재·대상 선별 (F3.6)
+│  │   ├─ query.py             # 조회 쿼리 빌더 — 순수 함수 (F5.1·F6.7)
 │  │   └─ tombstone.py          # 사라진 물건 표시 — 범위 필수 (F4.2·F4.13)
 │  ├─ geocoder/
 │  │   ├─ cache.py              # 주소 캐시 — 실패도 캐시한다 (F3.2)
