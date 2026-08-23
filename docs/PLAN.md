@@ -74,7 +74,9 @@ onbid-mcp/
 │  │   ├─ cache.py              # 주소 캐시 — 실패도 캐시한다 (F3.2)
 │  │   ├─ kakao.py              # 카카오 로컬 — 429 즉시 중단 (F3.3~F3.5)
 │  │   └─ resolver.py           # 폴백 사다리 — 단계별 status·level (F3.1·F3.6)
-│  ├─ stats/                    # 분포 집계
+│  ├─ stats/
+│  │   ├─ distribution.py      # 분포 6축 — 합계 보존·혼재 경고 (§8.3)
+│  │   └─ win_rate.py          # 낙찰가율 2지표 — caveat 강제 (§8.3·D18)
 │  └─ pipeline/                 # 배치 오케스트레이션 — **커밋은 여기서만** (F4.16)
 │      ├─ batch.py             # 물건 배치: 수집 → 이력+적재 → tombstone → 메타 (전량/증분)
 │      ├─ rounds.py            # 회차 이력 배치: 시도 시각순 롤링 (F1.11·F1.16)
