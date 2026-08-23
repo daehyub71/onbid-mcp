@@ -70,7 +70,8 @@ onbid-mcp/
 │  │   └─ tombstone.py          # 사라진 물건 표시 — 범위 필수 (F4.2·F4.13)
 │  ├─ geocoder/
 │  │   ├─ cache.py              # 주소 캐시 — 실패도 캐시한다 (F3.2)
-│  │   └─ kakao.py              # 카카오 로컬 — 429 즉시 중단 (F3.3~F3.5)
+│  │   ├─ kakao.py              # 카카오 로컬 — 429 즉시 중단 (F3.3~F3.5)
+│  │   └─ resolver.py           # 폴백 사다리 — 단계별 status·level (F3.1·F3.6)
 │  ├─ stats/                    # 분포 집계
 │  └─ pipeline/                 # 배치 오케스트레이션 — **커밋은 여기서만** (F4.16)
 │      ├─ batch.py             # 물건 배치: 수집 → 이력+적재 → tombstone → 메타 (전량/증분)
