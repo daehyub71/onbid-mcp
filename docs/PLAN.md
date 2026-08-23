@@ -178,7 +178,7 @@ Phase 1은 M0~M7로 구성한다. 각 마일스톤은 **테스트 통과 없이 
 | **M3.5** | 운영 자동화 | `.github/workflows/` | 매일·주간 배치가 사람 손 없이 돈다 | M3 |
 | **M4** | 지오코딩 | `core/geocoder` | 좌표 부여, `ok` 90% 이상 | M3 |
 | **M5** | 조회 계층 | `core/store` 쿼리, `core/stats`, `api/` | 필터·커서·집계 동작 | M3 |
-| **M6** | MCP 서버 | `onbid_mcp/` 툴 4종 + Resource 4종 | Claude Code에서 호출 성공 | M5 |
+| **M6** | MCP 서버 | `onbid_mcp/` 툴 4종 + Resource 4종 | **Claude Desktop**에서 호출 성공 | M5 |
 | **M7** | 검수·품질 | 실패 리포트, 게이트 통과 | SPEC §12 AC1~AC13 전부 충족 | M4, M6 |
 
 ### 4.1 순서에 대한 설계 결정
@@ -301,7 +301,7 @@ SPEC §8.1은 물건을 반환하도록 규정한다. 두 마일스톤은 M3 이
 - 오류 5종 매핑, **`no_result`를 빈 배열로 반환하지 않는다**
 - tool description에 판단 금지·배치분·원문 확인 명시 (F6.9)
 - `get_address_geocode` 일일 상한 (F6.10)
-- Claude Code 연결 검증
+- **Claude Desktop** 연결 검증 (`claude_desktop_config.json` 등록)
 
 #### M7. 검수·품질
 

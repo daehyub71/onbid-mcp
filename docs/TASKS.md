@@ -413,7 +413,7 @@
 
 ## M6. MCP 서버 🔄
 
-**완료 기준**: Claude Code에서 툴 4종·Resource 4종이 모두 정상 호출된다 (AC5)
+**완료 기준**: **Claude Desktop**에서 툴 4종·Resource 4종이 모두 정상 호출된다 (AC5) *(2026-08-23 사용자 결정으로 Claude Code 에서 변경)*
 **선행**: M5
 
 - [x] `onbid_mcp/server.py` — stdio 서버 골격 (F6.1) *(2026-08-23)*
@@ -454,7 +454,10 @@
 - [ ] Resource 4종 — `codes/regions`, `codes/usages`, `codes/property-types`, `dataset/status` (F7)
 - [ ] tool description 문구 — 판단 없음 / 배치 수집분 / 입찰 전 온비드 원문 확인 (F6.9)
 - [ ] 툴 계약 테스트 — 입출력 스키마, `meta`·`query_echo` 존재, 오류 5종
-- [ ] Claude Code 연결 검증 (`.mcp.json` 등록 → 실제 호출)
+- [ ] **Claude Desktop 연결 검증** — `claude_desktop_config.json` 등록 → 실제 호출
+      · 앱 단위 설정이라 경로가 다르다: macOS `~/Library/Application Support/Claude/`
+      · 절대 경로로 `venv/bin/python -m onbid_mcp.server` 를 지정한다 (앱이 PATH·cwd 를 물려주지 않는다)
+      · 키는 설정 파일의 `env` 로 주입 — 앱은 프로젝트 `.env` 를 읽지 않는다
 
 ---
 
